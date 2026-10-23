@@ -1,0 +1,6 @@
+
+pycache/
+*/pycache/
+*/**/pycache/
+*.py[cod]
+*$py.class
