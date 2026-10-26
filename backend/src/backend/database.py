@@ -6,5 +6,9 @@ from supabase import create_client, Client
 load_dotenv()
 
 url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_KEY")
-supabase = create_client(url,key)
+
+supabase = create_client(url, os.getenv("SUPABASE_SERVICE_KEY"))
+
+def get_auth_client():
+    #client baru per request, pakai anon key, khusus login dan verifikasi token
+    return create_client(url, os.getenv("SUPABASE_ANON_KEY"))
