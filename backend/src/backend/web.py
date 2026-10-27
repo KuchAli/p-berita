@@ -55,6 +55,7 @@ class Users(BaseModel):
     role: Literal["user", "admin"]
     created_at:datetime=Field(default_factory=datetime.now)
 
+#1. class berita
 class Berita(BaseModel):
     id: int
     penulis_id: str
@@ -63,6 +64,7 @@ class Berita(BaseModel):
     isi: str
     status: Literal["published","draft"]
     slug: str
+    created_at:datetime=Field(default_factory=datetime.now)
 
 class CreateBerita(BaseModel):
     judul: str = Field(min_length=3)
@@ -70,6 +72,30 @@ class CreateBerita(BaseModel):
     slug: str = Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     kategori: Literal["olahraga", "gaya", "lingkungan", "sosial", "ekonomi"]
     status: Literal["published","draft"] = "published"
+
+#2.class like management
+class Likes(BaseModel):
+    id: int 
+    user_id: str
+    berita_id: int
+    created_at:datetime=Field(default_factory=datetime.now)
+
+#3.class dislike management
+class Dislikes(BaseModel):
+    id: int 
+    user_id: str
+    berita_id: int
+    created_at:datetime=Field(default_factory=datetime.now)
+
+#4.class komentar management
+class Komentar(BaseModel):
+    id: int
+    berita_id: int
+    user_id: str
+    isi_komentar: str
+    parent_id: int
+    created_at:datetime=Field(default_factory=datetime.now)
+
 
 #endpoint User
 @route.post("/api/register")
@@ -164,7 +190,7 @@ def detail_berita(slug: str):
     return res.data[0]
 
 
-#admin 
+#admin (berita)
 @route.get("/api/admin/berita")
 def list_berita_admin(admin: dict = Depends(require_admin)):
     return supabase.table("berita").select("*").order("created_at", desc=True).execute().data
@@ -208,6 +234,21 @@ def hapus_berita(berita_id:int, admin: dict = Depends(require_admin)):
     return {
         "message": "Berita dihapus"
     }
+
+#endpoint admin(likes)
+@route.get("/api/admin/like")
+def likes_berita_admin(admin: dict = Depends(require_admin)):
+    return supabase.table("likes").select("*").order("created_at", desc=True).execute().data
+
+#endpoint  admin(dislikes)
+@route.get("/api/admin/dislike")
+def dislikes_berita_admin(admin: dict = Depends(require_admin)):
+    return supabase.table("dislikes").select("*").order("created_at", desc= True).execute().data
+
+#endpoint admin (komentar)
+@route.get("/api/admin/komentar")
+def komentar_berita_admin(admin: dict = Depends(require_admin)):
+    return supabase.table("komentar").select("*").order("created_at", desc=True).execute.data
 
     # response = (
     #     supabase.table("profiles")
