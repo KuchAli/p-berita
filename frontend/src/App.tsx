@@ -1,8 +1,9 @@
+import AuthLayout from "./layouts/AuthLayout"
 
 const App = () => {
   return (
-    <div>
-      <p className="text-4xl ">WOI</p>
+    <div className="min-h-screen">
+      <AuthLayout />
     </div>
   )
 }
