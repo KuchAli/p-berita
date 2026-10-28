@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -22,13 +22,18 @@ def get_current_user(cred: HTTPAuthorizationCredentials = Depends(security)):
     except Exception:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "token tidak valid")
 
-    profile = (
-        supabase.table("profiles")
-        .select("id, username, role")
-        .eq("id", user_id)
-        .single()
-        .execute()
-    )
+    try:
+
+        profile = (
+            supabase.table("profiles")
+            .select("id, username, role")
+            .eq("id", user_id)
+            .single()
+            .execute()
+        )
+
+    except Exception:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Profil tidak ditemukan")
     return profile.data
 
 def require_admin(user: dict = Depends(get_current_user)):
@@ -93,8 +98,27 @@ class Komentar(BaseModel):
     berita_id: int
     user_id: str
     isi_komentar: str
-    parent_id: int
+    parent_id: Optional[int] = None
     created_at:datetime=Field(default_factory=datetime.now)
+
+
+# 5. class laporan management
+class Laporan(BaseModel):
+    id: int
+    user_id: str
+    berita_id: int
+    alasan_laporan: str
+    status: Literal["pending","resolved"]
+    created_at:datetime=Field(default_factory=datetime.now)
+
+class CreateLaporan(BaseModel):
+    berita_id: int
+    alasan_laporan: str =  Field(min_length=3)
+
+class UpdateStatusLaporan(BaseModel):
+    status: Literal["pending", "resolved"] = "pending"
+
+
 
 
 #endpoint User
@@ -176,7 +200,7 @@ def list_berita():
     return supabase.table("berita").select("*").eq("status", "published").order("created_at", desc=True).execute().data
 
 #detail berita publik
-@route.get("/api/berita/{berita_id}")
+@route.get("/api/berita/{slug}")
 def detail_berita(slug: str):
     res =(
         supabase.table("berita")
@@ -187,6 +211,20 @@ def detail_berita(slug: str):
     )
     if not res.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Berita tidak ditemukan!")
+    return res.data[0]
+
+# endpoint user (laporan)
+@route.post("/api/laporan", status_code=status.HTTP_201_CREATED)
+def tambah_laporan(data: CreateLaporan, user:dict = Depends(get_current_user)):
+    try:
+        res = supabase.table("laporan").insert({
+            "user_id": user["id"],
+            "berita_id": data.berita_id,
+            "alasan_laporan": data.alasan_laporan,
+        }).execute()
+    except Exception:
+        logger.exception("gagal membuat laporan")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "gagal membuat laporan")
     return res.data[0]
 
 
@@ -204,6 +242,7 @@ def tambah_berita(data: CreateBerita, admin:dict = Depends(require_admin)):
             "isi":data.isi,
             "kategori":data.kategori,
             "slug":data.slug,
+            "status": data.status,
         }).execute()
     except Exception:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "slug sudah di pakai atau data tidak valid")
@@ -211,17 +250,23 @@ def tambah_berita(data: CreateBerita, admin:dict = Depends(require_admin)):
 
 @route.put("/api/admin/berita/{berita_id}")
 def edit_berita(berita_id: int, data: CreateBerita, admin: dict = Depends(require_admin)):
-    res = (
-        supabase.table("berita")
-        .update({
-            "judul": data.judul,
-            "isi": data.isi,
-            "kategori": data.kategori,
-            "slug": data.slug,
-        })
-        .eq("id", berita_id)
-        .execute()
-    )
+    try:
+
+        res = (
+            supabase.table("berita")
+            .update({
+                "judul": data.judul,
+                "isi": data.isi,
+                "kategori": data.kategori,
+                "slug": data.slug,
+                "status": data.status,
+            })
+            .eq("id", berita_id)
+            .execute()
+        )
+    except Exception:
+        logger.exception("edit berita gagal")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "slug sudah di pakai atau data tidak valid")
     if not res.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Berita tidak ditemukan")
     return res.data[0]
@@ -248,7 +293,28 @@ def dislikes_berita_admin(admin: dict = Depends(require_admin)):
 #endpoint admin (komentar)
 @route.get("/api/admin/komentar")
 def komentar_berita_admin(admin: dict = Depends(require_admin)):
-    return supabase.table("komentar").select("*").order("created_at", desc=True).execute.data
+    return supabase.table("komentar").select("*").order("created_at", desc=True).execute().data
+
+#endpoint admin (laporan)
+@route.get("/api/admin/laporan")
+def list_laporan_berita(admin:dict = Depends(require_admin)):
+    return supabase.table("laporan").select("*").order("created_at", desc=True).execute().data
+
+@route.patch("/api/admin/laporan/{laporan_id}")
+def update_status_laporan(laporan_id: int, data: UpdateStatusLaporan, admin: dict = Depends(require_admin)):
+    res = (
+        supabase.table("laporan").update({
+            "status": data.status
+        })
+        .eq("id", laporan_id)
+        .execute()
+    )
+    if not res.data:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Laporan tidak ditemukan")
+    return res.data[0]
+    
+
+
 
     # response = (
     #     supabase.table("profiles")
