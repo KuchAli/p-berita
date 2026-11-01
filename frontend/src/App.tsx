@@ -1,9 +1,9 @@
-import AuthLayout from "./layouts/AuthLayout"
+import AppRoutes from "./routes"
 
 const App = () => {
   return (
-    <div className="min-h-screen">
-      <AuthLayout />
+    <div className="min-h-screen font-sans">
+      <AppRoutes />
     </div>
   )
 }
