@@ -1,13 +1,14 @@
-import LoginForm from "../features/auth/components/LoginForm"
+import { Outlet } from "react-router"
+import AuthHero from "./parts/AuthHero"
 
 const AuthLayout = () => {
   return (
-    <div className="flex min-h-screen">
-        <div className="flex flex-1 justify-center items-center">
-            <p>KIRI</p>
+    <div className="flex flex-col lg:flex-row min-h-screen">
+        <div className="lg:flex-1 flex">
+            <AuthHero />
         </div>
-        <div className="flex flex-1 items-center">
-            <LoginForm />
+        <div className="flex flex-1 md:flex-[2] items-center py-10 px-4 md:py-0">
+            <Outlet />
         </div>
     </div>
   )
