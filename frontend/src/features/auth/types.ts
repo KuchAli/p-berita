@@ -1,13 +1,8 @@
-export interface User {
-    id: string;
-    username: string;
-    isAdmin?: boolean
-    name: string
-}
+export type Role = "admin" | "user";
 
-export interface AuthState {
-    token: string | null;
-    user: User | null;
-    loading: boolean;
-    error: string | null
+export interface User {
+  id: string;
+  username: string;
+  role: Role;
+  name: string;
 }
