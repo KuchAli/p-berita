@@ -13,3 +13,14 @@ export async function getMe() {
   const { data } = await api.get<User>("/auth/me");
   return data;
 }
+
+export interface RegisterPayload {
+  name: string;
+  username: string;
+  password: string;
+}
+
+export async function registerRequest(payload: RegisterPayload) {
+  const { data } = await api.post<User>("/auth/register", payload);
+  return data;
+}
