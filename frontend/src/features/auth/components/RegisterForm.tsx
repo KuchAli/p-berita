@@ -21,7 +21,7 @@ const RegisterForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [nama, setNama] = useState("");
+  // const [nama, setNama] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -45,7 +45,7 @@ const RegisterForm = () => {
 
     setLoading(true);
     try {
-      await registerRequest({ name: nama, username, password });
+      await registerRequest({ username, password });
       const user = await login(username, password);
       navigate(HOME_BY_ROLE[user.role], { replace: true });
     } catch (err) {
@@ -66,7 +66,7 @@ const RegisterForm = () => {
       </section>
       <section>
         <form className="field" onSubmit={handleSubmit}>
-          <Input
+          {/* <Input
             label="Nama Lengkap"
             name="nama"
             type="text"
@@ -74,7 +74,7 @@ const RegisterForm = () => {
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             required
-          />
+          /> */}
 
           <Input
             label="Username"

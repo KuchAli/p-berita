@@ -15,7 +15,6 @@ export async function getMe() {
 }
 
 export interface RegisterPayload {
-  name: string;
   username: string;
   password: string;
 }
