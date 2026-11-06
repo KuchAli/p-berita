@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 
 
 #endpoint User
-@route.post("/api/register")
+@route.post("/api/auth/register")
 def register(user:UsersRegister):
     #cek apakah udah ada data user 
     existing_user = (supabase.table("profiles")
@@ -100,7 +100,7 @@ def register(user:UsersRegister):
         "message": "Registrasi berhasil"
     }
 
-@route.post("/api/login")
+@route.post("/api/auth/login")
 def login(user:UsersLogin):
     try:
         res = get_auth_client().auth.sign_in_with_password({
